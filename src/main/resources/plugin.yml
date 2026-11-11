@@ -9,10 +9,18 @@ depend: [BedWars1058]
 commands:
   bwcompass:
     description: BedWars1058-Compass admin command
-    usage: /bwcompass <reload>
-    permission: bwcompass.admin
+    usage: /bwcompass [status|reload|config]
 
 permissions:
   bwcompass.admin:
-    description: Allows reloading the plugin
+    description: Everything under /bwcompass
     default: op
+    children:
+      bwcompass.reload: true
+      bwcompass.config: true
+  bwcompass.reload:
+    description: Allows /bwcompass reload
+    default: false
+  bwcompass.config:
+    description: Allows /bwcompass config (editing config.yml in game)
+    default: false

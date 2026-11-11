@@ -17,10 +17,19 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
 
     private val sessions = HashMap<UUID, Session>()
     private var tickCounter = 0L
+    private var taskId = -1
 
+    /** (Re)starts the repeating task with the current tracker.update-ticks. A task that is already running is cancelled first. */
     fun start() {
-        plugin.server.scheduler.runTaskTimer(plugin, Runnable { tick() }, 20L, plugin.settings.updateTicks)
+        if (taskId != -1) plugin.server.scheduler.cancelTask(taskId)
+        taskId = plugin.server.scheduler.runTaskTimer(plugin, Runnable { tick(false) }, 20L, plugin.settings.updateTicks).taskId
     }
+
+    /** Runs one full pass right now (including the once-a-second compass and locator bar checks). Used after a reload. */
+    fun refresh() = tick(true)
+
+    /** How many trackers are active. */
+    fun activeCount(): Int = sessions.size
 
     fun isTracking(player: Player) = sessions.containsKey(player.uniqueId)
 
@@ -55,9 +64,13 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
 
     fun clearAll() = sessions.clear()
 
-    private fun tick() {
+    /**
+     * One pass over every running arena: keep compasses correct, keep the locator bar off, and update every tracker.
+     * [forceEnsure] skips the once-a-second throttle for the compass and locator bar checks.
+     */
+    private fun tick(forceEnsure: Boolean) {
         tickCounter += plugin.settings.updateTicks
-        val ensureNow = tickCounter % 20L < plugin.settings.updateTicks
+        val ensureNow = forceEnsure || tickCounter % 20L < plugin.settings.updateTicks
 
         for (arena in ArrayList(plugin.bedWars.arenaUtil.arenas)) {
             if (ensureNow) plugin.locatorBar.apply(arena.world) // re-asserted every second in case a world reset its game rules
