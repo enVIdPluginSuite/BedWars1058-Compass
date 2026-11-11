@@ -1,0 +1,18 @@
+name: BedWars1058-Compass
+version: '${version}'
+main: dev.etran.bedwars1058compass.BedWars1058Compass
+api-version: '1.13'
+authors: [etran]
+description: Hypixel-style player tracker compass for BedWars1058.
+depend: [BedWars1058]
+
+commands:
+  bwcompass:
+    description: BedWars1058-Compass admin command
+    usage: /bwcompass <reload>
+    permission: bwcompass.admin
+
+permissions:
+  bwcompass.admin:
+    description: Allows reloading the plugin
+    default: op

@@ -1,0 +1,70 @@
+# BedWars1058-Compass
+# Colour codes use '&'. Placeholders are written as {name}.
+
+compass:
+  name: "&aCompass &7(Right Click)"
+  lore:
+    - "&7Right-click to open the &aTracker Shop&7."
+    - "&7Buy a tracker to hunt down enemy players."
+  # Hotbar slot (0-8) the compass is placed in. Falls back to the first free slot.
+  slot: 8
+  # Make sure every living player in a match always has a compass.
+  ensure-in-inventory: true
+  # Swap compasses that came from other plugins (different name/lore) for ours.
+  replace-foreign-compasses: false
+
+tracker:
+  cost:
+    material: EMERALD
+    amount: 2
+  # The tracker is lost when the player who bought it dies.
+  stop-on-death: true
+  # How often (in ticks) the compass target + action bar update.
+  update-ticks: 5
+  action-bar-only-when-holding: true
+  # With no tracker active, the compass points at your own team spawn.
+  untracked-points-to-spawn: true
+
+# Everything in here exists to make this plugin the single owner of compass
+# behaviour while a match is running (arena state "playing").
+override:
+  # Also lock compasses for spectators. This disables BedWars1058's own
+  # spectator teleporter compass, so it is off by default.
+  include-spectators: false
+  cancel-drop: true
+  # Stop compasses being moved into chests / shops / other plugins' menus.
+  block-container-moves: true
+  # Cancel any menu, command or plugin teleport another plugin tries to fire right after a
+  # compass click, swing or punch (the punch itself still deals damage).
+  suppress-foreign-reactions: true
+  suppress-window-ms: 250
+
+gui:
+  shop-title: "&8Tracker Shop"
+  select-title: "&8Select a player to track"
+  shop-item-name: "&aPlayer Tracker"
+  shop-item-lore:
+    - "&7Track a single enemy player."
+    - "&7The compass points at them and the"
+    - "&7action bar shows their distance."
+    - ""
+    - "&7Cost: &f{cost}"
+    - ""
+    - "{action}"
+  stop-item-name: "&cStop Tracking"
+  status-item-name: "&eCurrently Tracking"
+
+messages:
+  prefix: "&8[&aCompass&8] &r"
+  not-enough: "{prefix}&cYou need &f{cost} &cto buy a tracker!"
+  no-targets: "{prefix}&cThere are no enemy players to track right now."
+  now-tracking: "{prefix}&7Now tracking {player}&7."
+  stopped: "{prefix}&7Tracker removed."
+  target-gone: "{prefix}&7Your target is no longer in the match."
+  target-invalid: "{prefix}&cThat player can no longer be tracked."
+  lost-on-death: "{prefix}&7You died, so your tracker was lost."
+  action-bar: "&fTracking: {player} &8| &fDistance: &a{distance}m"
+  action-bar-respawning: "&fTracking: {player} &8| &cRespawning"
+  action-bar-other-world: "&fTracking: {player} &8| &cOther dimension"
+  reloaded: "{prefix}&aConfiguration reloaded."
+  no-permission: "&cYou don't have permission to do that."
