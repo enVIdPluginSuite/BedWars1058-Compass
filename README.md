@@ -99,3 +99,9 @@ The jar is `build/libs/BedWars1058-Compass-<version>.jar`. It is compiled agains
 | `GameListener.kt` | BedWars1058 lifecycle events |
 | `LocatorBar.kt` | locator bar game rule |
 | `ConfigEditor.kt`, `PluginCommand.kt` | in-game config editing, `/bwcompass` |
+
+## Developer note
+This plugin is coded with AI assistance and architected completely by me. Regardless, use at your own risk.
+
+## License
+This plugin is under the MIT License, check the [License](LICENSE) file for more details.
