@@ -13,6 +13,7 @@ class BedWars1058Compass : JavaPlugin() {
     lateinit var compasses: Compasses; private set
     lateinit var trackers: TrackerManager; private set
     lateinit var menus: TrackerMenus; private set
+    lateinit var communication: QuickCommunication; private set
 
     override fun onEnable() {
         val registration = server.servicesManager.getRegistration(BedWars::class.java)
@@ -27,6 +28,7 @@ class BedWars1058Compass : JavaPlugin() {
         matches = MatchService(this)
         compasses = Compasses(this)
         menus = TrackerMenus(this)
+        communication = QuickCommunication(this)
         trackers = TrackerManager(this)
 
         server.pluginManager.apply {

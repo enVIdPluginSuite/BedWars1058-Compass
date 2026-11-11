@@ -76,7 +76,7 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
         val now = System.currentTimeMillis()
         if (now - (lastMenuOpen[player.uniqueId] ?: 0L) < 200L) return
         lastMenuOpen[player.uniqueId] = now
-        plugin.menus.openShop(player)
+        plugin.menus.openCompass(player)
     }
 
     // ---- 2. last words -------------------------------------------------------------------

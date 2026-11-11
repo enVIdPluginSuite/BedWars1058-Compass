@@ -34,10 +34,6 @@ data class QuickMessage(
 /** Typed view over config.yml. Call [load] again to hot-reload. */
 class Settings(private val plugin: JavaPlugin) {
 
-    // Kept for the old single-name compass; replaced by the two modes below.
-    var compassName = ""; private set
-    var compassLore: List<String> = emptyList(); private set
-
     var compassSlot = 8; private set
     var lockSlot = true; private set
     var ensureCompass = true; private set
@@ -78,6 +74,7 @@ class Settings(private val plugin: JavaPlugin) {
     /**
      * Reads config.yml from disk and fills every field below.
      * STEPS: 1) make sure the file exists  2) re-read it from disk  3) add options this version introduced  4) copy every value into a typed field.
+     * The v1 options compass.name and compass.lore no longer exist: the two modes have their own names (compass.communication / compass.tracker).
      */
     fun load() {
         plugin.saveDefaultConfig()
@@ -85,8 +82,6 @@ class Settings(private val plugin: JavaPlugin) {
         mergeDefaults()
         val c = plugin.config
 
-        compassName = color(c.getString("compass.name", "&aCompass"))
-        compassLore = c.getStringList("compass.lore").map(::color)
         compassSlot = c.getInt("compass.slot", 8).coerceIn(0, 8)
         lockSlot = c.getBoolean("compass.lock-slot", true)
         ensureCompass = c.getBoolean("compass.ensure-in-inventory", true)

@@ -30,6 +30,37 @@ class TrackerMenus(private val plugin: BedWars1058Compass) {
 
     private val s get() = plugin.settings
 
+    /** Players that currently have one of our menus open (so a reload can close them without touching InventoryView). */
+    private val openFor = HashSet<UUID>()
+
+    /** Remembers that [player] is about to see one of our menus. */
+    fun opened(player: Player) {
+        openFor.add(player.uniqueId)
+    }
+
+    /** Forgets [player]'s open menu (their inventory was closed). */
+    fun closed(player: Player) {
+        openFor.remove(player.uniqueId)
+    }
+
+    /** Closes every menu of ours that is open. Used before a reload, because the titles and contents may be stale after it. */
+    fun closeAll() {
+        for (id in ArrayList(openFor)) Bukkit.getPlayer(id)?.closeInventory()
+        openFor.clear()
+    }
+
+    /**
+     * What a right-click on the compass does: before the team's bed is destroyed it opens the quick communication menu,
+     * afterwards the tracker shop.
+     */
+    fun openCompass(player: Player) {
+        when (plugin.compasses.modeFor(player)) {
+            CompassMode.TRACKER -> openShop(player)
+            CompassMode.COMMUNICATION -> plugin.communication.open(player)
+        }
+    }
+
+    /** Shows the Tracker Shop: the buy button, and (while tracking) the current target and a stop button. */
     fun openShop(player: Player) {
         val holder = ShopMenu()
         val inv = Bukkit.createInventory(holder, 27, s.shopTitle)
@@ -51,9 +82,11 @@ class TrackerMenus(private val plugin: BedWars1058Compass) {
             )
             inv.setItem(SHOP_STOP_SLOT, Items.named(Material.BARRIER, s.stopItemName))
         }
+        opened(player)
         player.openInventory(inv)
     }
 
+    /** Shows the list of enemy players [player] can track, as heads with the team colour and the price. */
     fun openTargets(player: Player) {
         val targets = plugin.matches.trackableTargets(player)
         if (targets.isEmpty()) {
@@ -77,9 +110,11 @@ class TrackerMenus(private val plugin: BedWars1058Compass) {
             inv.setItem(index, Items.head(target.name, name, lore))
             holder.slots[index] = target.uniqueId
         }
+        opened(player)
         player.openInventory(inv)
     }
 
+    /** True when [player] holds enough of the tracker currency. */
     fun canAfford(player: Player) = Items.count(player.inventory, s.costMaterial) >= s.costAmount
 
     /** Removes the price from the inventory. Returns false (and takes nothing) if unaffordable. */

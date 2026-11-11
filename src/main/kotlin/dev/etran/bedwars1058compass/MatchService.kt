@@ -27,7 +27,11 @@ class MatchService(private val plugin: BedWars1058Compass) {
         return arena.status == GameState.playing && arena.isPlayer(player) && !arena.isReSpawning(player)
     }
 
+    /** The team [player] plays for, or null when they are not in an arena. */
     fun teamOf(player: Player): ITeam? = arenaOf(player)?.getTeam(player)
+
+    /** True once the bed of [player]'s own team is destroyed. This is what turns the compass into the tracker shop. */
+    fun isBedDestroyed(player: Player): Boolean = teamOf(player)?.isBedDestroyed == true
 
     /** Enemy players that can currently be tracked by [player]. */
     fun trackableTargets(player: Player): List<Player> {
