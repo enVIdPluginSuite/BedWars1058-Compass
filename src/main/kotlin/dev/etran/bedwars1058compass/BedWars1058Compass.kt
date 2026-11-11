@@ -14,6 +14,7 @@ class BedWars1058Compass : JavaPlugin() {
     lateinit var trackers: TrackerManager; private set
     lateinit var menus: TrackerMenus; private set
     lateinit var communication: QuickCommunication; private set
+    lateinit var locatorBar: LocatorBar; private set
 
     override fun onEnable() {
         val registration = server.servicesManager.getRegistration(BedWars::class.java)
@@ -29,6 +30,7 @@ class BedWars1058Compass : JavaPlugin() {
         compasses = Compasses(this)
         menus = TrackerMenus(this)
         communication = QuickCommunication(this)
+        locatorBar = LocatorBar(this)
         trackers = TrackerManager(this)
 
         server.pluginManager.apply {
@@ -42,6 +44,7 @@ class BedWars1058Compass : JavaPlugin() {
 
     override fun onDisable() {
         if (::trackers.isInitialized) trackers.clearAll()
+        if (::locatorBar.isInitialized) locatorBar.restoreAll()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {

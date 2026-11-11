@@ -22,7 +22,10 @@ class GameListener(private val plugin: BedWars1058Compass) : Listener {
     }
 
     @EventHandler
-    fun onFirstSpawn(e: PlayerFirstSpawnEvent) = giveLater(e.player)
+    fun onFirstSpawn(e: PlayerFirstSpawnEvent) {
+        plugin.locatorBar.apply(e.arena.world)
+        giveLater(e.player)
+    }
 
     @EventHandler
     fun onRespawn(e: PlayerReSpawnEvent) {
@@ -61,6 +64,7 @@ class GameListener(private val plugin: BedWars1058Compass) : Listener {
 
     @EventHandler
     fun onStateChange(e: GameStateChangeEvent) {
+        plugin.locatorBar.apply(e.arena.world)
         if (e.newState == GameState.playing) {
             e.arena.players.forEach(::giveLater)
         } else {

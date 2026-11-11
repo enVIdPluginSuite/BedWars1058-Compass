@@ -60,6 +60,7 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
         val ensureNow = tickCounter % 20L < plugin.settings.updateTicks
 
         for (arena in ArrayList(plugin.bedWars.arenaUtil.arenas)) {
+            if (ensureNow) plugin.locatorBar.apply(arena.world) // re-asserted every second in case a world reset its game rules
             if (arena.status != GameState.playing) continue
             for (player in ArrayList(arena.players)) {
                 if (!player.isOnline || !plugin.matches.isInMatch(player)) continue
