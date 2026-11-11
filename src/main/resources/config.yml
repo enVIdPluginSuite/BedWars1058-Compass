@@ -1,17 +1,75 @@
 # BedWars1058-Compass
 # Colour codes use '&'. Placeholders are written as {name}.
+# Everything in this file can be changed in game with /bwcompass config (see /bwcompass).
 
 compass:
-  name: "&aCompass &7(Right Click)"
-  lore:
-    - "&7Right-click to open the &aTracker Shop&7."
-    - "&7Buy a tracker to hunt down enemy players."
-  # Hotbar slot (0-8) the compass is placed in. Falls back to the first free slot.
+  # Hypixel behaviour: the compass lives in the 9th hotbar slot (slot 8, counting from 0).
   slot: 8
+  # Move the compass back into that slot when it ends up somewhere else and the slot is free.
+  lock-slot: true
   # Make sure every living player in a match always has a compass.
   ensure-in-inventory: true
   # Swap compasses that came from other plugins (different name/lore) for ours.
   replace-foreign-compasses: false
+  # Before your team's bed is destroyed the compass only sends quick team messages.
+  communication:
+    name: "&aQuick Communication &7(Right Click)"
+    lore:
+      - "&7Right-click to send a quick message"
+      - "&7to your team."
+  # Once your team's bed is destroyed the compass becomes the tracker shop.
+  tracker:
+    name: "&aTracker Shop &7(Right Click)"
+    lore:
+      - "&7Right-click to open the &aTracker Shop&7."
+      - "&7Buy a tracker to hunt down enemy players."
+
+quick-communication:
+  # false: the compass does nothing at all before your bed is destroyed.
+  enabled: true
+  # Seconds a player must wait between two quick messages.
+  cooldown-seconds: 3
+  title: "&8Quick Communication"
+  # {player} = coloured name, {team} = team name, {message} = the chosen message.
+  format: "&8[&bTEAM&8] {player}&8: &f{message}"
+  # One entry per button. Add, change or remove entries freely.
+  # Placeholders in a message: {player} {team} {x} {y} {z}
+  messages:
+    attack:
+      slot: 10
+      material: DIAMOND_SWORD
+      name: "&cAttack"
+      message: "I'm attacking!"
+    defend:
+      slot: 11
+      material: IRON_CHESTPLATE
+      name: "&aDefend"
+      message: "I'm defending our base!"
+    resources:
+      slot: 12
+      material: IRON_INGOT
+      name: "&eCollect Resources"
+      message: "I'm collecting resources."
+    gather:
+      slot: 13
+      material: ENDER_PEARL
+      name: "&6Group Up"
+      message: "Group up on me at {x}, {y}, {z}!"
+    help:
+      slot: 14
+      material: GOLDEN_APPLE
+      name: "&bNeed Help"
+      message: "I need help at {x}, {y}, {z}!"
+    bed:
+      slot: 15
+      material: TNT
+      name: "&dBed Under Attack"
+      message: "Someone is attacking our bed!"
+    enemy:
+      slot: 16
+      material: BOW
+      name: "&9Enemy Spotted"
+      message: "Enemy spotted at {x}, {y}, {z}!"
 
 tracker:
   cost:
@@ -24,6 +82,12 @@ tracker:
   action-bar-only-when-holding: true
   # With no tracker active, the compass points at your own team spawn.
   untracked-points-to-spawn: true
+
+# Minecraft 1.21.6+ has a player locator bar that replaces the XP bar. It would make
+# the tracker obsolete, so it is switched off in every arena world. Servers without
+# the game rule are not affected.
+locator-bar:
+  disable: true
 
 # Everything in here exists to make this plugin the single owner of compass
 # behaviour while a match is running (arena state "playing").
@@ -63,6 +127,9 @@ messages:
   target-gone: "{prefix}&7Your target is no longer in the match."
   target-invalid: "{prefix}&cThat player can no longer be tracked."
   lost-on-death: "{prefix}&7You died, so your tracker was lost."
+  tracker-locked: "{prefix}&cThe tracker unlocks once your bed is destroyed."
+  tracker-unlocked: "{prefix}&aYour bed was destroyed! Your compass is now the &eTracker Shop&a."
+  communication-cooldown: "{prefix}&cYou can send another message in &f{seconds}s&c."
   action-bar: "&fTracking: {player} &8| &fDistance: &a{distance}m"
   action-bar-respawning: "&fTracking: {player} &8| &cRespawning"
   action-bar-other-world: "&fTracking: {player} &8| &cOther dimension"

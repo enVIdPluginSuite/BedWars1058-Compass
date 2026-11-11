@@ -4,6 +4,13 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
+/**
+ * What the compass currently is for a player.
+ *  - COMMUNICATION: the team's bed is alive, so the compass only sends quick messages to the team.
+ *  - TRACKER:       the team's bed is destroyed, so the compass opens the tracker shop.
+ */
+enum class CompassMode { COMMUNICATION, TRACKER }
+
 /** Everything about the physical compass item. */
 class Compasses(private val plugin: BedWars1058Compass) {
 
