@@ -7,6 +7,20 @@ import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.UUID
 
+/*
+ * ================================ MAP OF THIS FILE (read this first) ================================
+ *   TrackerManager keeps one tracker per player (tracker uuid -> target uuid + arena) and one repeating task.
+ *
+ *   Public API:   track / stop / forget / clear / clearAll, isTracking / targetOf / activeCount
+ *   The task:     start() (re)schedules it, refresh() runs one pass now, tick() is the pass itself.
+ *   One pass:     for every playing arena: keep the locator bar off -> for every player in a match: keep their compass correct
+ *                 (once a second) -> update() their tracker, or point the compass at their own spawn when they have none.
+ *
+ * Why a task and not events: other plugins can set a player's compass target at any moment, so the target is simply set
+ * again every few ticks. That is what makes the compass pointing impossible for another plugin to keep.
+ * =====================================================================================================
+ */
+
 /**
  * Owns all active trackers and the repeating task that keeps every in-match compass
  * pointing where WE say, no matter what other plugins did with it in between.
@@ -31,21 +45,26 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
     /** How many trackers are active. */
     fun activeCount(): Int = sessions.size
 
+    /** True when [player] has an active tracker. */
     fun isTracking(player: Player) = sessions.containsKey(player.uniqueId)
 
+    /** The player [player] is tracking, or null. */
     fun targetOf(player: Player): Player? =
         sessions[player.uniqueId]?.let { Bukkit.getPlayer(it.target) }
 
+    /** Starts tracking: [tracker] now follows [target] until one of them dies, leaves or the match ends. */
     fun track(tracker: Player, target: Player) {
         val arena = plugin.matches.arenaOf(tracker) ?: return
         sessions[tracker.uniqueId] = Session(target.uniqueId, arena)
         tracker.compassTarget = target.location
     }
 
+    /** Ends a tracker and (optionally) tells the player why. */
     fun stop(tracker: Player, message: String? = null) {
         if (sessions.remove(tracker.uniqueId) != null && message != null) tracker.sendMessage(message)
     }
 
+    /** Ends a tracker and (optionally) tells the player why. */
     fun stop(trackerId: UUID, message: String? = null) {
         sessions.remove(trackerId) ?: return
         if (message != null) Bukkit.getPlayer(trackerId)?.sendMessage(message)
@@ -58,10 +77,12 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
         watchers.forEach { stop(it, plugin.settings.msg("target-gone")) }
     }
 
+    /** Removes every tracker of one arena (the match ended or restarted). */
     fun clear(arena: IArena) {
         sessions.entries.removeIf { it.value.arena == arena }
     }
 
+    /** Removes every tracker (the plugin is disabled). */
     fun clearAll() = sessions.clear()
 
     /**
@@ -85,6 +106,7 @@ class TrackerManager(private val plugin: BedWars1058Compass) {
         }
     }
 
+    /** Updates one player: validates the target, points the compass, and shows the action bar. */
     private fun update(arena: IArena, player: Player) {
         val session = sessions[player.uniqueId]
         if (session == null) {

@@ -40,28 +40,34 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
     private val lastCompassUse = HashMap<UUID, Long>()
     private val lastMenuOpen = HashMap<UUID, Long>()
 
+    /** True while [player] is inside a running match (the scope of the whole takeover). */
     private fun inMatch(player: Player) = plugin.matches.isInMatch(player)
 
+    /** Remembers that [player] just used a compass. This opens the short window in which foreign reactions are cancelled. */
     private fun touch(player: Player) {
         lastCompassUse[player.uniqueId] = System.currentTimeMillis()
     }
 
+    /** True when [player] used a compass less than override.suppress-window-ms ago. */
     private fun recentlyUsed(player: Player): Boolean {
         val at = lastCompassUse[player.uniqueId] ?: return false
         return System.currentTimeMillis() - at <= plugin.settings.suppressWindowMs
     }
 
+    /** Cancels an interaction completely: the event, the item use and the block use. */
     private fun lock(e: PlayerInteractEvent) {
         e.isCancelled = true
         e.setUseItemInHand(Event.Result.DENY)
         e.setUseInteractedBlock(Event.Result.DENY)
     }
 
+    /** True for any click or use of a compass by a player in a match (stepping on pressure plates does not count). */
     private fun isCompassClick(e: PlayerInteractEvent): Boolean =
         e.action != Action.PHYSICAL && Compasses.isCompass(e.item) && inMatch(e.player)
 
     // ---- 1. first word -------------------------------------------------------------------
 
+    /** Runs before every other plugin: locks the click and, for a right-click, opens what the compass currently offers (quick messages or the tracker shop). */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     fun onInteractFirst(e: PlayerInteractEvent) {
         if (!isCompassClick(e)) return
@@ -81,28 +87,35 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
 
     // ---- 2. last words -------------------------------------------------------------------
 
+    /** Second layer: if a plugin un-cancelled the click after us, cancel it again. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onInteractLate(e: PlayerInteractEvent) {
         if (isCompassClick(e) && (!e.isCancelled || e.useItemInHand() != Event.Result.DENY)) lock(e)
     }
 
+    /** Third layer, last word: same as [onInteractLate], at MONITOR so nothing can run after it. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     fun onInteractFinal(e: PlayerInteractEvent) {
         if (isCompassClick(e) && (!e.isCancelled || e.useItemInHand() != Event.Result.DENY)) lock(e)
     }
 
+    /** Right-clicking an entity with a compass is cancelled before other plugins see it. */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     fun onEntityInteractFirst(e: PlayerInteractEntityEvent) = entityInteract(e)
 
+    /** Re-cancels an entity interaction that another plugin un-cancelled. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onEntityInteractLate(e: PlayerInteractEntityEvent) = entityInteract(e)
 
+    /** Same as [onEntityInteractFirst], for the "at entity" variant (armour stands). */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     fun onEntityAtInteractFirst(e: PlayerInteractAtEntityEvent) = entityInteract(e)
 
+    /** Same as [onEntityInteractLate], for the "at entity" variant. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onEntityAtInteractLate(e: PlayerInteractAtEntityEvent) = entityInteract(e)
 
+    /** Shared body of the four entity handlers: marks a compass use and cancels the interaction. */
     private fun entityInteract(e: PlayerInteractEntityEvent) {
         val player = e.player
         if (!inMatch(player)) return
@@ -113,6 +126,7 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
 
     // ---- 3. plugins that ignore cancellation ---------------------------------------------
 
+    /** Cancels any menu another plugin opens right after a compass click (our own menus are exempt). */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onForeignInventoryOpen(e: InventoryOpenEvent) {
         if (!plugin.settings.suppressForeignReactions) return
@@ -121,6 +135,7 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
         if (inMatch(player) && recentlyUsed(player)) e.isCancelled = true
     }
 
+    /** Cancels any command another plugin runs for the player right after a compass click. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onForeignCommand(e: PlayerCommandPreprocessEvent) {
         if (!plugin.settings.suppressForeignReactions) return
@@ -160,12 +175,14 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
 
     // ---- 4. keep the item where it belongs -----------------------------------------------
 
+    /** A compass can not be dropped during a match (override.cancel-drop). */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onDrop(e: PlayerDropItemEvent) {
         if (!plugin.settings.cancelDrop) return
         if (Compasses.isCompass(e.itemDrop.itemStack) && inMatch(e.player)) e.isCancelled = true
     }
 
+    /** Stops the compass being moved into a chest, shop or other menu: placing it, shift-clicking it and number-key swaps. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onInventoryClick(e: InventoryClickEvent) {
         if (!plugin.settings.blockContainerMoves) return
@@ -183,6 +200,7 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
         if (movesIn) e.isCancelled = true
     }
 
+    /** Same protection as [onInventoryClick] for click-and-drag. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onInventoryDrag(e: InventoryDragEvent) {
         if (!plugin.settings.blockContainerMoves) return
@@ -193,6 +211,7 @@ class CompassOverrideListener(private val plugin: BedWars1058Compass) : Listener
         if (e.rawSlots.any { it < top.size }) e.isCancelled = true
     }
 
+    /** Forgets the player's timers. */
     @EventHandler
     fun onQuit(e: PlayerQuitEvent) {
         lastCompassUse.remove(e.player.uniqueId)

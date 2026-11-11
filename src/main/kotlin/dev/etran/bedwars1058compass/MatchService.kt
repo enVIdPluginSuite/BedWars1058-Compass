@@ -6,9 +6,21 @@ import com.andrei1058.bedwars.api.arena.team.ITeam
 import org.bukkit.ChatColor
 import org.bukkit.entity.Player
 
+/*
+ * ================================ MAP OF THIS FILE (read this first) ================================
+ *   Every question about "where is this player in BedWars1058" goes through here, so the rest of the plugin never touches the API:
+ *   arenaOf / teamOf ........ which arena and team
+ *   isInMatch ............... inside a running match (the scope of the compass takeover)
+ *   isActivePlayer .......... a living participant (can buy / use things)
+ *   isBedDestroyed .......... decides quick communication vs tracker shop
+ *   trackableTargets ........ enemies that can be tracked
+ * =====================================================================================================
+ */
+
 /** Thin wrapper around the BedWars1058 API answering "is this player in a running match?". */
 class MatchService(private val plugin: BedWars1058Compass) {
 
+    /** The arena [player] is in, or null. */
     fun arenaOf(player: Player): IArena? = plugin.bedWars.arenaUtil.getArenaByPlayer(player)
 
     /**
@@ -43,6 +55,7 @@ class MatchService(private val plugin: BedWars1058Compass) {
         }
     }
 
+    /** The player's name in their team colour, e.g. "§cSteve". */
     fun coloredName(player: Player, arena: IArena? = arenaOf(player)): String {
         val chat: ChatColor = arena?.getTeam(player)?.color?.chat() ?: ChatColor.WHITE
         return "$chat${player.name}"
